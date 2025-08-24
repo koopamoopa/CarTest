@@ -14,10 +14,10 @@ namespace ProjectCarTest.Repository
             _context = context;
         }
 
-        // Helper to map entity -> DTO
         private static CarInfoDto MapToDto(CarInfo car) =>
             new CarInfoDto
             {
+                UserID = car.User.userID,
                 Make = car.make,
                 Model = car.model,
                 Year = car.year,
@@ -27,6 +27,7 @@ namespace ProjectCarTest.Repository
         public ICollection<CarInfoDto> GetCarInfo()
         {
             return _context.CarInfos
+                .Include(c => c.User)
                 .OrderBy(c => c.carID)
                 .Select(c => MapToDto(c))
                 .ToList();
@@ -35,7 +36,8 @@ namespace ProjectCarTest.Repository
         public ICollection<CarInfoDto> GetCarsByUserId(int userID)
         {
             return _context.CarInfos
-                .Where(c => c.userID == userID)
+                .Include(c => c.User)
+                .Where(c => c.User.userID == userID)
                 .OrderBy(c => c.carID)
                 .Select(c => MapToDto(c))
                 .ToList();
@@ -44,6 +46,7 @@ namespace ProjectCarTest.Repository
         public CarInfoDto? GetCarInfoById(int carID)
         {
             return _context.CarInfos
+                .Include(c => c.User)
                 .Where(c => c.carID == carID)
                 .Select(c => MapToDto(c))
                 .FirstOrDefault();
@@ -52,7 +55,8 @@ namespace ProjectCarTest.Repository
         public ICollection<CarInfoDto> GetCarsByMake(int userID, string make)
         {
             return _context.CarInfos
-                .Where(c => c.userID == userID && c.make.ToLower() == make.ToLower())
+                .Include(c => c.User)
+                .Where(c => c.User.userID == userID && c.make.ToLower() == make.ToLower())
                 .OrderBy(c => c.carID)
                 .Select(c => MapToDto(c))
                 .ToList();
@@ -61,7 +65,8 @@ namespace ProjectCarTest.Repository
         public ICollection<CarInfoDto> GetCarsByModel(int userID, string model)
         {
             return _context.CarInfos
-                .Where(c => c.userID == userID && c.model.ToLower() == model.ToLower())
+                .Include(c => c.User)
+                .Where(c => c.User.userID == userID && c.model.ToLower() == model.ToLower())
                 .OrderBy(c => c.carID)
                 .Select(c => MapToDto(c))
                 .ToList();
@@ -70,12 +75,40 @@ namespace ProjectCarTest.Repository
         public ICollection<CarInfoDto> GetCarsByMakeAndModel(int userID, string make, string model)
         {
             return _context.CarInfos
-                .Where(c => c.userID == userID &&
+                .Include(c => c.User)
+                .Where(c => c.User.userID == userID &&
                             c.make.ToLower() == make.ToLower() &&
                             c.model.ToLower() == model.ToLower())
                 .OrderBy(c => c.carID)
                 .Select(c => MapToDto(c))
                 .ToList();
+        }
+
+        public CarInfo? AddCar(CarInfo car)
+        {
+            _context.CarInfos.Add(car);
+            _context.SaveChanges();
+            return car;
+        }
+
+        public bool RemoveCar(int carID)
+        {
+            var car = _context.CarInfos.FirstOrDefault(c => c.carID == carID);
+            if (car == null) return false;
+            _context.CarInfos.Remove(car);
+            _context.SaveChanges();
+            return true;
+
+        }
+
+        public bool UpdateStockLevel(int carID, int newStockLevel)
+        {
+            var car = _context.CarInfos.FirstOrDefault(c => c.carID == carID);
+            if (car == null) return false;
+            car.stockLevel = newStockLevel;
+            _context.SaveChanges();
+            return true;
+
         }
     }
 }
