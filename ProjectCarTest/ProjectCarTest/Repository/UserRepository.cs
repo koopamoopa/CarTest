@@ -1,24 +1,23 @@
 using ProjectCarTest.Data;
 using ProjectCarTest.Interfaces;
 using ProjectCarTest.Models;
-using System.Collections.Generic;
-using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace ProjectCarTest.Repository
 {
     public class UserRepository : IUserRepository
     {
         private readonly DataContext _context;
+
         public UserRepository(DataContext context)
         {
             _context = context;
         }
 
-        public ICollection<User> GetAllUsers()
+        public User? GetUserByUsernameAndPassword(string username, string password)
         {
             return _context.Users
-                .OrderBy(u => u.userID)
-                .ToList();
+                .FirstOrDefault(u => u.username == username && u.password == password);
         }
     }
 }

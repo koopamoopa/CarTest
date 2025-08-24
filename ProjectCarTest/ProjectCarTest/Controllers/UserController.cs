@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using ProjectCarTest.Dto;
 using ProjectCarTest.Interfaces;
 using ProjectCarTest.Models;
-using System.Collections.Generic;
 
 namespace ProjectCarTest.Controllers
 {
@@ -16,11 +16,22 @@ namespace ProjectCarTest.Controllers
             _userRepo = userRepo;
         }
 
-        [HttpGet("all")]
-        public IActionResult GetAllUsers()
+        [HttpPost("login")]
+        public IActionResult Login([FromBody] LoginRequestDto loginDto)
         {
-            var users = _userRepo.GetAllUsers();
-            return Ok(users);
+            var user = _userRepo.GetUserByUsernameAndPassword(loginDto.Username, loginDto.Password);
+
+            if (user == null)
+                return Unauthorized("Invalid username or password");
+
+            // Manually map User entity to LoginResponseDto
+            var response = new LoginResponseDto
+            {
+                Username = user.username,
+                CompanyName = user.companyName
+            };
+
+            return Ok(response);
         }
     }
 }

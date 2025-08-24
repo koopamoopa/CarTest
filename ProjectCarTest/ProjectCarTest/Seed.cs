@@ -82,6 +82,30 @@ namespace ProjectCarTest.Data
             _context.CarInfos.Add(car3);
             _context.SaveChanges();
 
+            // Additional cars for user1
+            var car4 = new CarInfo
+            {
+                User = user1,
+                stockLevel = 4,
+                year = 2019,
+                make = "Audi",
+                model = "Q5"
+            };
+            _context.CarInfos.Add(car4);
+
+            var car5 = new CarInfo
+            {
+                User = user1,
+                stockLevel = 2,
+                year = 2020,
+                make = "Audi",
+                model = "A6"
+            };
+            _context.CarInfos.Add(car5);
+
+            _context.SaveChanges();
+
+
             // Add more users/cars as needed
         }
     }

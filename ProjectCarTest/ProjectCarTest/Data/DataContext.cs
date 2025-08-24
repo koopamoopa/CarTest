@@ -7,18 +7,24 @@ public class DataContext : DbContext
 
     public DbSet<CarInfo> CarInfos { get; set; }
     public DbSet<User> Users { get; set; }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<User>().HasKey(u => u.userID);
-        modelBuilder.Entity<CarInfo>().HasKey(c => c.carID);
+        modelBuilder.Entity<User>()
+            .HasKey(u => u.userID);
+
+        modelBuilder.Entity<CarInfo>()
+            .HasKey(c => c.carID);
+
         modelBuilder.Entity<CarInfo>()
             .HasOne(c => c.User)
-            .WithMany()
+            .WithMany()  // FIX ME - for the lack of navigation collection in User, but will see.
             .HasForeignKey(c => c.userID)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Cascade); // automatically remove all carInfo
+
         modelBuilder.Entity<CarInfo>()
             .HasIndex(c => new { c.userID, c.make, c.model, c.year })
             .IsUnique();
+
+        base.OnModelCreating(modelBuilder);
     }
 }
