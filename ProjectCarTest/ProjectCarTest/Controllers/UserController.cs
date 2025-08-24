@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using ProjectCarTest.Dto;
 using ProjectCarTest.Interfaces;
 using ProjectCarTest.Models;
 
-namespace ProjectCarTest.Controllers
+namespace CarTest.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -16,15 +17,21 @@ namespace ProjectCarTest.Controllers
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] User loginRequest)
+        public IActionResult Login([FromBody] LoginRequestDto loginDto)
         {
-            var user = _userRepo.GetUserByUsernameAndPassword(loginRequest.username, loginRequest.password);
+            var user = _userRepo.GetUserByUsernameAndPassword(loginDto.Username, loginDto.Password);
 
             if (user == null)
                 return Unauthorized("Invalid username or password");
 
+            // Manually map User entity to LoginResponseDto
+            var response = new LoginResponseDto
+            {
+                Username = user.username,
+                CompanyName = user.companyName
+            };
 
-            return Ok(user);
+            return Ok(response);
         }
     }
 }
