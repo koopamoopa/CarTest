@@ -3,7 +3,7 @@ using ProjectCarTest.Dto;
 using ProjectCarTest.Interfaces;
 using ProjectCarTest.Models;
 
-namespace CarTest.Controllers
+namespace ProjectCarTest.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
