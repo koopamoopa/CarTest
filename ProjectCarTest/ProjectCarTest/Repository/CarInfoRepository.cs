@@ -24,12 +24,11 @@ namespace ProjectCarTest.Repository
                 StockLevel = car.stockLevel
             };
 
-        public ICollection<CarInfoDto> GetCarInfo()
+        public ICollection<CarInfo> GetCarInfo() // Debug Tool to see entire DB
         {
             return _context.CarInfos
                 .Include(c => c.User)
                 .OrderBy(c => c.carID)
-                .Select(c => MapToDto(c))
                 .ToList();
         }
 

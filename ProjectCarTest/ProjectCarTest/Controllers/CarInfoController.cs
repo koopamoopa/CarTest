@@ -79,21 +79,36 @@ namespace CarTest.Controllers
         }
 
         // DELETE: Remove Car
-        [HttpDelete("remove/{id}")]
-        public IActionResult RemoveCar(int id)
+        [HttpDelete("user/{userId}/remove/{carId}")]
+        public IActionResult RemoveCar(int userId, int carId)
         {
-            var success = _carInfoRepository.RemoveCar(id);
-            if (!success) return NotFound($"Car with ID {id} not found.");
-            return Ok($"Car with ID {id} removed.");
+            // Check if the car belongs to the specified user
+            var car = _context.CarInfos.FirstOrDefault(c => c.carID == carId && c.userID == userId);
+            if (car == null)
+                return NotFound($"Car with ID {carId} for User ID {userId} not found.");
+
+            _context.CarInfos.Remove(car);
+            _context.SaveChanges();
+
+            return Ok($"Car with ID {carId} for User ID {userId} removed.");
         }
 
+
         // PUT: Update Stock Level
-        [HttpPut("update-stock/{id}")]
-        public IActionResult UpdateStockLevel(int id, [FromBody] CarInfoDto carDto)
+        [HttpPut("user/{userId}/update-stock/{carId}")]
+        public IActionResult UpdateStockLevel(int userId, int carId, [FromBody] CarInfoUpdateStockDto dto)
         {
-            var success = _carInfoRepository.UpdateStockLevel(id, carDto.StockLevel);
-            if (!success) return NotFound($"Car with ID {id} not found.");
-            return Ok($"Stock level updated to {carDto.StockLevel} for Car ID {id}.");
+            // First, check if the car belongs to the user
+            var car = _context.CarInfos.FirstOrDefault(c => c.carID == carId && c.userID == userId);
+            if (car == null)
+                return NotFound($"Car with ID {carId} for User ID {userId} not found.");
+
+            // Update stock level
+            car.stockLevel = dto.StockLevel;
+            _context.SaveChanges();
+
+            return Ok(car); // Return updated car for verification
         }
+
     }
 }

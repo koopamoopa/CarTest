@@ -5,7 +5,7 @@ namespace ProjectCarTest.Interfaces
 {
     public interface ICarInfoRepository
     {
-        ICollection<CarInfoDto> GetCarInfo();
+        ICollection<CarInfo> GetCarInfo();
         ICollection<CarInfoDto> GetCarsByUserId(int userID);
         CarInfoDto? GetCarInfoById(int carID);
         ICollection<CarInfoDto> GetCarsByMake(int userID, string make);
