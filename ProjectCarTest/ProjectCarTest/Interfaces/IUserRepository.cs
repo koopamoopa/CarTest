@@ -5,6 +5,6 @@ namespace ProjectCarTest.Interfaces
 {
     public interface IUserRepository
     {
-        ICollection<User> GetAllUsers();
+        User? GetUserByUsernameAndPassword(string username, string password);
     }
 }

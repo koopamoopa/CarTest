@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ProjectCarTest.Interfaces;
 using ProjectCarTest.Models;
-using System.Collections.Generic;
 
 namespace ProjectCarTest.Controllers
 {
@@ -16,11 +15,16 @@ namespace ProjectCarTest.Controllers
             _userRepo = userRepo;
         }
 
-        [HttpGet("all")]
-        public IActionResult GetAllUsers()
+        [HttpPost("login")]
+        public IActionResult Login([FromBody] User loginRequest)
         {
-            var users = _userRepo.GetAllUsers();
-            return Ok(users);
+            var user = _userRepo.GetUserByUsernameAndPassword(loginRequest.username, loginRequest.password);
+
+            if (user == null)
+                return Unauthorized("Invalid username or password");
+
+
+            return Ok(user);
         }
     }
 }
