@@ -1,9 +1,17 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace ProjectCarTest.Dto
 {
     public class LoginRequestDto
     {
+        [Required]
+        [StringLength(50)]
         public string Username { get; set; }
-        public string Password { get; set; }  // plain text here, will be hashed/validated in service
+
+        [Required]
+        [StringLength(50)]
+        //[Contain "eng alphabet, !@#$%, numbers"]
+        public string Password { get; set; } 
     }
 
 }
