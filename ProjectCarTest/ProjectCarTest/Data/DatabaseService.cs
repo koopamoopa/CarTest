@@ -9,7 +9,7 @@ namespace ProjectCarTest.Data
 
         public DatabaseService(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
+            _connectionString = configuration.GetConnectionString("DefaultConnection") ?? "Data Source=carinfo.db";
         }
 
         public IDbConnection CreateConnection()
