@@ -2,20 +2,22 @@
 using ProjectCarTest.Interfaces;
 using ProjectCarTest.Models;
 using ProjectCarTest.Dto;
+using System.Security.Claims;
+using System.Collections.Generic;
+using System.Linq;
 
+// Handles HTTP requests and responses for Car Information for a particular logged-in user via GET, POST, PUT, DELETE requests
 namespace CarTest.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CarInfoController : Controller
+    public class CarInfoController : ControllerBase
     {
         private readonly ICarInfoRepository _carInfoRepository;
-        private readonly DataContext _context;
 
-        public CarInfoController(ICarInfoRepository carInfoRepository, DataContext context)
+        public CarInfoController(ICarInfoRepository carInfoRepository)
         {
             _carInfoRepository = carInfoRepository;
-            _context = context;
         }
 
         [HttpGet]
@@ -23,51 +25,66 @@ namespace CarTest.Controllers
         public IActionResult GetCarInfo()
         {
             var carInfos = _carInfoRepository.GetCarInfo();
-            if (!ModelState.IsValid) return BadRequest(ModelState);
             return Ok(carInfos);
         }
 
-        [HttpGet("user/{userID}")]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<CarInfo>))]
+        [HttpGet("user")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<CarInfoDto>))]
         [ProducesResponseType(404)]
-        public IActionResult GetCarsByUserId(int userID)
+        public IActionResult GetCarsByUser()
         {
+            var userID = GetUserIdFromToken();
             var cars = _carInfoRepository.GetCarsByUserId(userID);
             if (cars == null || !cars.Any()) return NotFound();
             return Ok(cars);
         }
 
-        [HttpGet("user/{userID}/make/{make}")]
-        public IActionResult GetCarsByMake(int userId, string make)
+        [HttpGet("make/{make}")]
+        public IActionResult GetCarsByMake(string make)
         {
-            var cars = _carInfoRepository.GetCarsByMake(userId, make);
+            // TODO: check the following
+            // Make is within 100 char limit, english words, doesn't contain restricted characters, not null
+            var userID = GetUserIdFromToken();
+            var cars = _carInfoRepository.GetCarsByMake(userID, make);
             return Ok(cars);
         }
 
-        [HttpGet("user/{userID}/model/{model}")]
-        public IActionResult GetCarsByModel(int userId, string model)
+        [HttpGet("model/{model}")]
+        public IActionResult GetCarsByModel(string model)
         {
-            var cars = _carInfoRepository.GetCarsByModel(userId, model);
+            // TODO: check the following
+            // Model is within 100 char limit, english words, doesn't contain restricted characters, not null
+            var userID = GetUserIdFromToken();
+            var cars = _carInfoRepository.GetCarsByModel(userID, model);
             return Ok(cars);
         }
 
-        [HttpGet("user/{userID}/make/{make}/model/{model}")]
-        public IActionResult GetCarsByMakeAndModel(int userID, string make, string model)
+        [HttpGet("make/{make}/model/{model}")]
+        public IActionResult GetCarsByMakeAndModel(string make, string model)
         {
+            // TODO: check the following
+            // Make is within 100 char limit, english words, doesn't contain restricted characters, not null
+            // Model is within 100 char limit, english words, doesn't contain restricted characters, not null
+            var userID = GetUserIdFromToken();
             var cars = _carInfoRepository.GetCarsByMakeAndModel(userID, make, model);
             return Ok(cars);
         }
 
-        // POST: Add Car
+        // Adds a new car entry for the logged-in user
         [HttpPost("add")]
-        public IActionResult AddCar([FromBody] CarInfoDto carDto)
+        public IActionResult AddCar([FromBody] CarCreateDto carDto)
         {
-            var user = _context.Users.Find(carDto.UserID);
-            if (user == null) return NotFound($"User with ID {carDto.UserID} not found.");
+            // TODO: check if carId is within bounds
+            // Make is within 100 char limit, english words, doesn't contain restricted characters, not null
+            // Model is within 100 char limit, english words, doesn't contain restricted characters, not null
+            // Year is between 1855-<present> (first car made in 1855, probably will never have a car with that date but never know), not null
+            // Stock level is non-negative and between 1-<stock limit>
+
+            var userID = GetUserIdFromToken();
 
             var car = new CarInfo
             {
-                User = user,
+                userID = userID,
                 make = carDto.Make,
                 model = carDto.Model,
                 year = carDto.Year,
@@ -75,40 +92,59 @@ namespace CarTest.Controllers
             };
 
             var addedCar = _carInfoRepository.AddCar(car);
-            return Ok(addedCar);
+
+            var response = new CarInfoDto
+            {
+                CarID = addedCar.CarID,
+                Make = addedCar.Make,
+                Model = addedCar.Model,
+                Year = addedCar.Year,
+                StockLevel = addedCar.StockLevel
+            };
+
+            return Ok(response);
         }
 
-        // DELETE: Remove Car
-        [HttpDelete("user/{userId}/remove/{carId}")]
-        public IActionResult RemoveCar(int userId, int carId)
+        // Removes the desired car owned by the logged-in user.
+        [HttpDelete("remove/{carId}")]
+        public IActionResult RemoveCar(int carId)
         {
-            // Check if the car belongs to the specified user
-            var car = _context.CarInfos.FirstOrDefault(c => c.carID == carId && c.userID == userId);
-            if (car == null)
-                return NotFound($"Car with ID {carId} for User ID {userId} not found.");
+            // TODO: check if carId is within bounds (not negative, is number, not null)
 
-            _context.CarInfos.Remove(car);
-            _context.SaveChanges();
-
-            return Ok($"Car with ID {carId} for User ID {userId} removed.");
+            var userID = GetUserIdFromToken();
+            var success = _carInfoRepository.RemoveCar(carId, userID);
+            if (!success) // fails if the carID isn't owned by the user or isn't present in the database.
+                return NotFound($"Car with ID {carId} for the logged-in user not found.");
+            return Ok($"Car with ID {carId} removed.");
         }
 
-
-        // PUT: Update Stock Level
-        [HttpPut("user/{userId}/update-stock/{carId}")]
-        public IActionResult UpdateStockLevel(int userId, int carId, [FromBody] CarInfoUpdateStockDto dto)
+        // Updates the stock level for a specific car owned by the logged-in user. 
+        [HttpPut("update-stock/{carId}")]
+        public IActionResult UpdateStockLevel(int carId, [FromBody] CarInfoUpdateStockDto dto)
         {
-            // First, check if the car belongs to the user
-            var car = _context.CarInfos.FirstOrDefault(c => c.carID == carId && c.userID == userId);
-            if (car == null)
-                return NotFound($"Car with ID {carId} for User ID {userId} not found.");
+            // TODO: check if StockLevel is within bounds (not negative, is number, not null)
 
-            // Update stock level
-            car.stockLevel = dto.StockLevel;
-            _context.SaveChanges();
+            var userID = GetUserIdFromToken();
+            var success = _carInfoRepository.UpdateStockLevel(carId, userID, dto.StockLevel);
 
-            return Ok(car); // Return updated car for verification
+            if (!success) // could not update the stock level
+                return NotFound($"Car with ID {carId} for the logged-in user not found.");
+
+            // Only return the updated fields to avoid null/empty values
+            var response = new
+            {
+                CarID = carId,
+                StockLevel = dto.StockLevel
+            };
+
+            return Ok(response);
         }
 
+        // Extract the userID from the JWT token to ensure that the specific logged-in user's data can be accessed / modified
+        private int GetUserIdFromToken()
+        {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.Parse(userIdString);
+        }
     }
 }

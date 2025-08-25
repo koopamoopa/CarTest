@@ -1,112 +1,72 @@
 ﻿using ProjectCarTest.Models;
-using Microsoft.EntityFrameworkCore;
+using ProjectCarTest.Data;
+using Dapper;
 
 namespace ProjectCarTest.Data
 {
     public class Seed
     {
-        private readonly DataContext _context;
+        private readonly DatabaseService _dbService;
 
-        public Seed(DataContext context)
+        public Seed(DatabaseService dbService)
         {
-            _context = context;
+            _dbService = dbService;
         }
 
         public void Initialize()
         {
-            _context.Database.EnsureCreated();
+            using var connection = _dbService.CreateConnection();
 
-            if (_context.Users.Any())
-                return; // DB already seeded
+            // Create tables if they don't exist
+            connection.Execute(@"
+                CREATE TABLE IF NOT EXISTS Users (
+                    userID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT NOT NULL,
+                    password TEXT NOT NULL,
+                    companyName TEXT
+                );
+                
+                CREATE TABLE IF NOT EXISTS CarInfos (
+                    carID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    userID INTEGER NOT NULL,
+                    make TEXT NOT NULL,
+                    model TEXT NOT NULL,
+                    year INTEGER NOT NULL,
+                    stockLevel INTEGER NOT NULL,
+                    FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE
+                );
+            ");
 
-            // First user and car
-            var user1 = new User
-            {
-                username = "audi_owner",
-                password = "securepass",
-                companyName = "Audi Lovers Inc."
-            };
-            _context.Users.Add(user1);
-            _context.SaveChanges();
+            // Check if users exist
+            var userCount = connection.ExecuteScalar<int>("SELECT COUNT(1) FROM Users");
+            if (userCount > 0) return; // already seeded
 
-            var car1 = new CarInfo
-            {
-                User = user1,
-                stockLevel = 3,
-                year = 2018,
-                make = "Audi",
-                model = "A4"
-            };
-            _context.CarInfos.Add(car1);
-            _context.SaveChanges();
+            // Seed users
+            var user1Id = connection.ExecuteScalar<int>(
+                "INSERT INTO Users (username, password, companyName) VALUES (@Username, @Password, @CompanyName); SELECT last_insert_rowid();",
+                new { Username = "audi_owner", Password = "Pass1234$", CompanyName = "Audi Lovers Inc." });
 
-            // Second user and car
-            var user2 = new User
-            {
-                username = "bmw_owner",
-                password = "anotherpass",
-                companyName = "BMW Enthusiasts Ltd."
-            };
-            _context.Users.Add(user2);
-            _context.SaveChanges();
+            var user2Id = connection.ExecuteScalar<int>(
+                "INSERT INTO Users (username, password, companyName) VALUES (@Username, @Password, @CompanyName); SELECT last_insert_rowid();",
+                new { Username = "thebmw", Password = "b7M#@w13", CompanyName = "BMW Enthusiasts Ltd." }); // 8 character password
 
-            var car2 = new CarInfo
-            {
-                User = user2,
-                stockLevel = 5,
-                year = 2020,
-                make = "BMW",
-                model = "X5"
-            };
-            _context.CarInfos.Add(car2);
-            _context.SaveChanges();
+            var user3Id = connection.ExecuteScalar<int>(
+                "INSERT INTO Users (username, password, companyName) VALUES (@Username, @Password, @CompanyName); SELECT last_insert_rowid();",
+                new { Username = "mercWork", Password = "YEeCsB#&3ggsd$XYyeNsnqPHAa?5qm", CompanyName = "Mercedes Fans Co." }); // 30 character password
 
-            // Third user and car (example)
-            var user3 = new User
-            {
-                username = "merc_owner",
-                password = "pass1234",
-                companyName = "Mercedes Fans Co."
-            };
-            _context.Users.Add(user3);
-            _context.SaveChanges();
-
-            var car3 = new CarInfo
-            {
-                User = user3,
-                stockLevel = 2,
-                year = 2021,
-                make = "Mercedes",
-                model = "C-Class"
-            };
-            _context.CarInfos.Add(car3);
-            _context.SaveChanges();
-
-            // Additional cars for user1
-            var car4 = new CarInfo
-            {
-                User = user1,
-                stockLevel = 4,
-                year = 2019,
-                make = "Audi",
-                model = "Q5"
-            };
-            _context.CarInfos.Add(car4);
-
-            var car5 = new CarInfo
-            {
-                User = user1,
-                stockLevel = 2,
-                year = 2020,
-                make = "Audi",
-                model = "A6"
-            };
-            _context.CarInfos.Add(car5);
-
-            _context.SaveChanges();
-
-
-            // Add more users/cars as needed
+            // Seed cars
+            connection.Execute(
+                "INSERT INTO CarInfos (userID, make, model, year, stockLevel) VALUES (@UserID, @Make, @Model, @Year, @StockLevel);",
+                new[]
+                {
+                    new { UserID = user1Id, Make = "Audi", Model = "A4", Year = 2018, StockLevel = 3 },
+                    new { UserID = user1Id, Make = "Audi", Model = "Q5", Year = 2019, StockLevel = 4 },
+                    new { UserID = user2Id, Make = "BMW", Model = "X5", Year = 2020, StockLevel = 5 },
+                    new { UserID = user2Id, Make = "BMW", Model = "X6", Year = 2013, StockLevel = 4 },
+                    new { UserID = user3Id, Make = "Mercedes", Model = "C-Class", Year = 2021, StockLevel = 2 },
+                    new { UserID = user3Id, Make = "Mercedes-Benz", Model = "A-Class", Year = 2019, StockLevel = 7 },
+                    new { UserID = user1Id, Make = "Audi", Model = "A6", Year = 2020, StockLevel = 2 }
+                });
         }
     }
 }

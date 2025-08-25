@@ -3,6 +3,7 @@ using ProjectCarTest.Dto;
 using ProjectCarTest.Interfaces;
 using ProjectCarTest.Models;
 
+// Handles HTTP requests and responses for Users Logging In
 namespace ProjectCarTest.Controllers
 {
     [ApiController]
@@ -19,7 +20,7 @@ namespace ProjectCarTest.Controllers
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequestDto loginDto)
         {
-            var user = _userRepo.GetUserByUsernameAndPassword(loginDto.Username, loginDto.Password);
+            var user = _userRepo.Login(loginDto);
 
             if (user == null)
                 return Unauthorized("Invalid username or password");
@@ -27,8 +28,10 @@ namespace ProjectCarTest.Controllers
             // Manually map User entity to LoginResponseDto
             var response = new LoginResponseDto
             {
-                Username = user.username,
-                CompanyName = user.companyName
+                Token = user.Token,
+                Username = user.Username,
+                CompanyName = user.CompanyName,
+                Result = user.Result
             };
 
             return Ok(response);
