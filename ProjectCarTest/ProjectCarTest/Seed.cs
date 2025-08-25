@@ -52,7 +52,7 @@ namespace ProjectCarTest.Data
 
             var user3Id = connection.ExecuteScalar<int>(
                 "INSERT INTO Users (username, password, companyName) VALUES (@Username, @Password, @CompanyName); SELECT last_insert_rowid();",
-                new { Username = "mercWork", Password = "YEeCsB#&3ggsd$XYyeNsnqPHAa?5qm", CompanyName = "Mercedes Fans Co." }); // 30 character password
+                new { Username = "mercWork", Password = "xRZdRqi8mMPb74fkly0d5sPgtTZe6o3rxEirw1ellIcyE5EkGd", CompanyName = "Mercedes Fans Co." }); // 50 character password
 
             // Seed cars
             connection.Execute(
@@ -60,6 +60,7 @@ namespace ProjectCarTest.Data
                 new[]
                 {
                     new { UserID = user1Id, Make = "Audi", Model = "A4", Year = 2018, StockLevel = 3 },
+                    new { UserID = user1Id, Make = "Audi", Model = "A4", Year = 2019, StockLevel = 5 },
                     new { UserID = user1Id, Make = "Audi", Model = "Q5", Year = 2019, StockLevel = 4 },
                     new { UserID = user2Id, Make = "BMW", Model = "X5", Year = 2020, StockLevel = 5 },
                     new { UserID = user2Id, Make = "BMW", Model = "X6", Year = 2013, StockLevel = 4 },

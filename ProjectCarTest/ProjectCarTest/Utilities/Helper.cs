@@ -9,8 +9,8 @@ namespace ProjectCarTest.Utilities
     {
         public static class StringValidator
         {
-            // Valid input text should allow: A-Z, a-z, 0-9, @ & $ ! # ?
-            private static readonly Regex legalCharsRegex = new Regex(@"^[A-Za-z0-9@&$!#?]+$");
+            // Valid input text should allow: A-Z, a-z, 0-9, @ & $ ! # ? - _
+            private static readonly Regex legalCharsRegex = new Regex(@"^[a-zA-Z0-9@&$!#?_-]+$"); // update me if any legal characters are wanted
 
             public static bool ContainsOnlyLegalCharacters(string input)
             {
