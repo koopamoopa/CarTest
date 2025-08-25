@@ -4,13 +4,10 @@ namespace ProjectCarTest.Dto
 {
     public class LoginRequestDto
     {
-        [Required]
-        [StringLength(50)]
+        [Required(ErrorMessage = "Username is required.")]
         public string Username { get; set; }
 
-        [Required]
-        [StringLength(50)]
-        //[Contain "eng alphabet, !@#$%, numbers"]
+        [Required(ErrorMessage = "Password is required.")]
         public string Password { get; set; } 
     }
 
