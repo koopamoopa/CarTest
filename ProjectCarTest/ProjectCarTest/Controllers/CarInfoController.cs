@@ -26,14 +26,6 @@ namespace CarTest.Controllers
             _carInfoRepository = carInfoRepository;
         }
 
-        [HttpGet]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<CarInfo>))]
-        public IActionResult GetCarInfo()
-        {
-            var carInfos = _carInfoRepository.GetCarInfo();
-            return Ok(carInfos);
-        }
-
         [HttpGet("user")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<CarInfoDto>))]
         [ProducesResponseType(404)]

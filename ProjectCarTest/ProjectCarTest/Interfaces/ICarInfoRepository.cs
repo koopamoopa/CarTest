@@ -6,7 +6,6 @@ namespace ProjectCarTest.Interfaces
 {
     public interface ICarInfoRepository
     {
-        IEnumerable<CarInfoDto> GetCarInfo(); // debug tool
         IEnumerable<CarInfoDto> GetCarsByUserId(int userID);
         IEnumerable<CarInfoDto> GetCarsByMake(int userID, string make);
         IEnumerable<CarInfoDto> GetCarsByModel(int userID, string model);

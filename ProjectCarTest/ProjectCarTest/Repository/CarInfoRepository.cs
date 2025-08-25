@@ -18,14 +18,6 @@ namespace ProjectCarTest.Repository
             _dbService = dbService;
         }
 
-        // Debug Tool: return all cars as DTO
-        public IEnumerable<CarInfoDto> GetCarInfo()
-        {
-            using var connection = _dbService.CreateConnection();
-            var sql = @"SELECT carID, make, model, year, stockLevel FROM CarInfos ORDER BY carID";
-            return connection.Query<CarInfoDto>(sql).ToList();
-        }
-
         // Searches for all the Cars for a specific User
         public IEnumerable<CarInfoDto> GetCarsByUserId(int userID)
         {
