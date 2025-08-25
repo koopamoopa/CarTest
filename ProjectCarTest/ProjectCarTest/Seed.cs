@@ -44,15 +44,15 @@ namespace ProjectCarTest.Data
             // Seed users
             var user1Id = connection.ExecuteScalar<int>(
                 "INSERT INTO Users (username, password, companyName) VALUES (@Username, @Password, @CompanyName); SELECT last_insert_rowid();",
-                new { Username = "audi_owner", Password = "securepass", CompanyName = "Audi Lovers Inc." });
+                new { Username = "audi_owner", Password = "Pass1234$", CompanyName = "Audi Lovers Inc." });
 
             var user2Id = connection.ExecuteScalar<int>(
                 "INSERT INTO Users (username, password, companyName) VALUES (@Username, @Password, @CompanyName); SELECT last_insert_rowid();",
-                new { Username = "bmw_owner", Password = "anotherpass", CompanyName = "BMW Enthusiasts Ltd." });
+                new { Username = "thebmw", Password = "b7M#@w13", CompanyName = "BMW Enthusiasts Ltd." }); // 8 character password
 
             var user3Id = connection.ExecuteScalar<int>(
                 "INSERT INTO Users (username, password, companyName) VALUES (@Username, @Password, @CompanyName); SELECT last_insert_rowid();",
-                new { Username = "merc_owner", Password = "pass1234", CompanyName = "Mercedes Fans Co." });
+                new { Username = "mercWork", Password = "YEeCsB#&3ggsd$XYyeNsnqPHAa?5qm", CompanyName = "Mercedes Fans Co." }); // 30 character password
 
             // Seed cars
             connection.Execute(
@@ -61,9 +61,11 @@ namespace ProjectCarTest.Data
                 {
                     new { UserID = user1Id, Make = "Audi", Model = "A4", Year = 2018, StockLevel = 3 },
                     new { UserID = user1Id, Make = "Audi", Model = "Q5", Year = 2019, StockLevel = 4 },
-                    new { UserID = user1Id, Make = "Audi", Model = "A6", Year = 2020, StockLevel = 2 },
                     new { UserID = user2Id, Make = "BMW", Model = "X5", Year = 2020, StockLevel = 5 },
-                    new { UserID = user3Id, Make = "Mercedes", Model = "C-Class", Year = 2021, StockLevel = 2 }
+                    new { UserID = user2Id, Make = "BMW", Model = "X6", Year = 2013, StockLevel = 4 },
+                    new { UserID = user3Id, Make = "Mercedes", Model = "C-Class", Year = 2021, StockLevel = 2 },
+                    new { UserID = user3Id, Make = "Mercedes-Benz", Model = "A-Class", Year = 2019, StockLevel = 7 },
+                    new { UserID = user1Id, Make = "Audi", Model = "A6", Year = 2020, StockLevel = 2 }
                 });
         }
     }
